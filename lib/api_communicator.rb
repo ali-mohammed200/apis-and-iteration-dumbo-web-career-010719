@@ -4,32 +4,30 @@ require 'pry'
 
 def get_character_movies_from_api(character_name)
   #make the web request
-  response_string = RestClient.get('http://www.swapi.co/api/people/')
+  #'http://www.swapi.co/api/people/?page='
+  counter = 1
+  response_string = RestClient.get("http://www.swapi.co/api/people/?page=#{counter}")
   response_hash = JSON.parse(response_string)
-  #binding.pry
-  # puts response_hash
   filmDataArray = []
-  response_hash["results"].each do |element|
-   if element["name"] == character_name
-     puts "Yes, he/she/it exists. One moment please..."
-       element["films"].each do |film|
-         film_response_string = RestClient.get(film)
-         film_response_hash = JSON.parse(film_response_string)
-         #film_response_hash
-         filmDataArray.push({film_response_hash["title"] => film_response_hash})
-       end
+while (response_hash["next"] != nil)
+    response_string = RestClient.get("http://www.swapi.co/api/people/?page=#{counter}")
+    response_hash = JSON.parse(response_string)
+    response_hash["results"].each do |element|
+     if element["name"] == character_name
+       puts "Yes, he/she/it exists. One moment please..."
+         element["films"].each do |film|
+           puts film
+           film_response_string = RestClient.get(film)
+           film_response_hash = JSON.parse(film_response_string)
+           filmDataArray.push({film_response_hash["title"] => film_response_hash})
+         end
+         return filmDataArray
+     end
    end
- end
- return filmDataArray
-  # iterate over the response hash to find the collection of `films` for the given
-  #   `character`
-  # collect those film API urls, make a web request to each URL to get the info
-  #  for that film
-  # return value of this method should be collection of info about each film.
-  #  i.e. an array of hashes in which each hash reps a given film
-  # this collection will be the argument given to `print_movies`
-  #  and that method will do some nice presentation stuff like puts out a list
-  #  of movies by title. Have a play around with the puts with other info about a given film.
+   counter += 1
+  end
+
+ return "Doesn't Exist"
 end
 
 def print_movies(films)
@@ -45,7 +43,8 @@ def show_character_movies(character)
   print_movies(films)
 end
 
-#puts get_character_movies_from_api("Darth Vader")
+puts get_character_movies_from_api("HSolo")
+puts get_character_movies_from_api("Tion Medon")
 ## BONUS
 
 # that `get_character_movies_from_api` method is probably pretty long. Does it do more than one job?
